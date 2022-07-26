@@ -20,6 +20,12 @@ class KeyWord:
     def __str__(self):
         print(self.word + self.docType)
 
+class KeyWordXCount:
+    def __init__(self, word, docType, count):
+        self.word = word
+        self.docType = docType
+        self.count = count
+
 
 # Reads file
 df = open("AllFilesAndDocTypes.txt", "r")
@@ -61,32 +67,70 @@ actualUniqueDataPoints = []
 # A list of common KeyWord objects per doctype - These have potential to be primary key words for that doc type
 primaryKeyWordsForADocType = []
 
+# Create a master list of all Key Word Objects
 for wordObject in allDocuments:
-    masterKeyWords.append(wordObject)
+    file = KeyWord(wordObject.filename, wordObject.docType)
+    masterKeyWords.append(file)
 
-for wordObject in masterKeyWords:
-    if wordObject.filename not in uniqueWords:
-        primaryWord = KeyWord(wordObject.filename, wordObject.docType)
-        uniqueWords.append(wordObject.filename)
-        uniqueKeyWordObjects.append(primaryWord)
+# Get count of master word list per doc type as a bar graph for each doc type
+# Dictionary of words and doc types
+docTypes = {
+}
+for i in masterKeyWords:
+    docTypes[i.word] = masterKeyWords.count(i)
+'''
+for data in masterKeyWords:
+    if data.word not in docTypes:
+        docTypes[data.word] = masterKeyWords.count(data)
     else:
-        notUnique = KeyWord(wordObject.filename, wordObject.docType)
-        commonKeyWordObjects.append(notUnique)
-        commonWordsList.append((notUnique.word))
+        docTypes.update({data.word: masterKeyWords.count(data)})
+'''
 
+# List of Dictionary keys
+listOfDictionaryKeys = []
+# list of Dictionary values
+listOfDictionaryValues = []
+for x in docTypes:
+    listOfDictionaryKeys.append(x)
+for x in docTypes:
+  listOfDictionaryValues.append(docTypes[x])
 
+import matplotlib.pyplot as plt
+fig = plt.figure()
+ax = fig.add_axes([0,0,1,1])
+ax.bar(listOfDictionaryKeys, listOfDictionaryValues)
+plt.show()
+
+# Filter master list of Key Word Objects into either unique words or common words
+for wordObject in masterKeyWords:
+    if wordObject.word not in uniqueWords:
+        uniqueWords.append(wordObject.word)
+        uniqueKeyWordObjects.append(wordObject)
+    else:
+        commonKeyWordObjects.append(wordObject)
+        commonWordsList.append(wordObject.word)
+
+# Get unique words
+# These are either:
+# - unique primary key words,
+# - primary keywords that appear mulitple times but for the same doc type
+# - or outliers
 for word in uniqueKeyWordObjects:
     if word.word not in commonWordsList:
         actualUniqueDataPoints.append(word)
     else:
-        pass
+        for data in uniqueKeyWordObjects:
+            if data.word in commonWordsList:
+                for dataP in commonKeyWordObjects:
+                    if data.docType == dataP.docType and data not in primaryKeyWordsForADocType:
+                        primaryKeyWordsForADocType.append(data)
 
-for data in uniqueKeyWordObjects:
-    if data.word in commonWordsList:
-        for dataP in commonKeyWordObjects:
-            if data.docType == dataP.docType and data not in primaryKeyWordsForADocType:
-                primaryKeyWordsForADocType.append(data)
 
+
+print("Master Words: ")
+for dataPoint in masterKeyWords:
+    print("Word: " + str(dataPoint.word) + ", Doc Type: " + str(dataPoint.docType))
+print("\n")
 
 print("Unique words: " + str(uniqueWords))
 print("Common word list: " + str(commonWordsList))
@@ -111,3 +155,5 @@ print("\n")
 print("Common Primary Key words for a doc type (Primary key words):")
 for dataPoint in primaryKeyWordsForADocType:
     print("Word: " + str(dataPoint.word) + ", Doc Type: " + str(dataPoint.docType))
+
+
